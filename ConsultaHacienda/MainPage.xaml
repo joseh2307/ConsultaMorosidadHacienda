@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:ConsultaHacienda.Models"
+             x:Class="ConsultaHacienda.MainPage"
+             Title="Consulta Hacienda"
+             BackgroundColor="#F1F4F9">
+
+    <ContentPage.Resources>
+        <Style x:Key="Tarjeta" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="White" />
+            <Setter Property="Stroke" Value="#E3E8F0" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Shadow">
+                <Shadow Brush="#330B3D91" Offset="0,2" Radius="6" Opacity="0.25" />
+            </Setter>
+        </Style>
+        <Style x:Key="TituloSeccion" TargetType="Label">
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="TextColor" Value="#0B3D91" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="Etiqueta" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#6B7280" />
+        </Style>
+        <Style x:Key="Valor" TargetType="Label">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="TextColor" Value="#1F2937" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        </Style>
+        <Style x:Key="Chip" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="Padding" Value="10,3" />
+            <Setter Property="HorizontalOptions" Value="Start" />
+        </Style>
+        <Style x:Key="TextoChip" TargetType="Label">
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        </Style>
+        <Style x:Key="Boton" TargetType="Button">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HeightRequest" Value="46" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="Padding" Value="4,0" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- ===== Zona de búsqueda (fija arriba) ===== -->
+        <Border Grid.Row="0" Style="{StaticResource Tarjeta}" Margin="12,12,12,6">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Número de cédula o identificación" Style="{StaticResource Etiqueta}" FontSize="13" />
+
+                <Border Stroke="#C7D2E3" StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                        BackgroundColor="#F8FAFD" Padding="10,0">
+                    <Entry x:Name="CedulaEntry"
+                           Placeholder="Ej: 112860047"
+                           PlaceholderColor="#9CA3AF"
+                           TextColor="#1F2937"
+                           FontSize="18"
+                           MaxLength="20"
+                           Keyboard="Text"
+                           IsSpellCheckEnabled="False"
+                           IsTextPredictionEnabled="False"
+                           ReturnType="Search"
+                           ClearButtonVisibility="WhileEditing"
+                           TextChanged="OnCedulaTextChanged"
+                           Completed="OnConsultarClicked" />
+                </Border>
+
+                <Label Text="Solo letras y números, sin espacios ni caracteres especiales."
+                       Style="{StaticResource Etiqueta}" FontSize="11" />
+
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Button x:Name="ConsultarButton" Grid.Column="0" Text="Consultar"
+                            Style="{StaticResource Boton}" BackgroundColor="#0B3D91"
+                            Clicked="OnConsultarClicked" />
+                    <Button Grid.Column="1" Text="Limpiar"
+                            Style="{StaticResource Boton}" BackgroundColor="#6B7280"
+                            Clicked="OnLimpiarClicked" />
+                    <Button Grid.Column="2" Text="Salir"
+                            Style="{StaticResource Boton}" BackgroundColor="#D93025"
+                            Clicked="OnSalirClicked" />
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ===== Resultados (con scroll táctil) ===== -->
+        <ScrollView Grid.Row="1" x:Name="ResultadoScroll">
+            <VerticalStackLayout Padding="12,6,12,24" Spacing="12">
+
+                <!-- Estado inicial / mensajes -->
+                <Border x:Name="MensajePanel" Style="{StaticResource Tarjeta}">
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Label x:Name="MensajeIcono" Text="🔎" FontSize="36" HorizontalOptions="Center" />
+                        <Label x:Name="MensajeTexto"
+                               Text="Ingrese una cédula y presione «Consultar» para ver la situación tributaria del contribuyente."
+                               HorizontalTextAlignment="Center" TextColor="#4B5563" FontSize="14" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <ActivityIndicator x:Name="Cargando" IsRunning="False" IsVisible="False"
+                                   Color="#0B3D91" HeightRequest="40" Margin="0,20" />
+
+                <!-- Resultado -->
+                <VerticalStackLayout x:Name="ResultadoPanel" IsVisible="False" Spacing="12"
+                                     x:DataType="m:Contribuyente">
+
+                    <!-- Encabezado -->
+                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="16"
+                            BackgroundColor="#0B3D91">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="CONTRIBUYENTE" TextColor="#B9C7E6" FontSize="11"
+                                   FontFamily="OpenSansSemibold" CharacterSpacing="1.5" />
+                            <Label Text="{Binding Nombre}" TextColor="White" FontSize="20"
+                                   FontFamily="OpenSansSemibold" LineBreakMode="WordWrap" />
+                            <Label TextColor="#DCE4F5" FontSize="13">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Identificación: " />
+                                        <Span Text="{Binding Identificacion}" FontFamily="OpenSansSemibold" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <Label Text="{Binding TipoIdentificacionTexto}" TextColor="#DCE4F5" FontSize="13" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Situación tributaria -->
+                    <Border Style="{StaticResource Tarjeta}">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="Situación tributaria" Style="{StaticResource TituloSeccion}" />
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                        Padding="12" BackgroundColor="{Binding Situacion.MorosoColor}">
+                                    <VerticalStackLayout HorizontalOptions="Center">
+                                        <Label Text="Moroso" TextColor="White" FontSize="12" HorizontalOptions="Center" />
+                                        <Label Text="{Binding Situacion.MorosoTexto}" TextColor="White" FontSize="22"
+                                               FontFamily="OpenSansSemibold" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                        Padding="12" BackgroundColor="{Binding Situacion.OmisoColor}">
+                                    <VerticalStackLayout HorizontalOptions="Center">
+                                        <Label Text="Omiso" TextColor="White" FontSize="12" HorizontalOptions="Center" />
+                                        <Label Text="{Binding Situacion.OmisoTexto}" TextColor="White" FontSize="22"
+                                               FontFamily="OpenSansSemibold" HorizontalOptions="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Estado" Style="{StaticResource Etiqueta}" />
+                                <Border Style="{StaticResource Chip}" BackgroundColor="{Binding Situacion.EstadoColor}">
+                                    <Label Text="{Binding Situacion.EstadoTexto}" Style="{StaticResource TextoChip}" FontSize="14" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <BoxView HeightRequest="1" Color="#EEF1F6" />
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Administración tributaria" Style="{StaticResource Etiqueta}" />
+                                <Label Text="{Binding Situacion.AdministracionTexto}" Style="{StaticResource Valor}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Régimen" Style="{StaticResource Etiqueta}" />
+                                <Label Text="{Binding RegimenTexto}" Style="{StaticResource Valor}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Mensaje de Hacienda -->
+                    <Border IsVisible="{Binding Situacion.TieneMensaje}"
+                            StrokeThickness="1" Stroke="#F5C26B" StrokeShape="RoundRectangle 14"
+                            BackgroundColor="#FFF7E6" Padding="16">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="⚠️  Aviso de Hacienda" FontFamily="OpenSansSemibold"
+                                   TextColor="#8A5300" FontSize="15" />
+                            <Label Text="{Binding Situacion.Mensaje}" TextColor="#5C3B00" FontSize="14"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Actividades económicas -->
+                    <Border Style="{StaticResource Tarjeta}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="{Binding TituloActividades}" Style="{StaticResource TituloSeccion}" />
+
+                            <Label Text="No registra actividades económicas."
+                                   IsVisible="{Binding SinActividades}"
+                                   TextColor="#6B7280" FontAttributes="Italic" />
+
+                            <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Actividades}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:Actividad">
+                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 10"
+                                                BackgroundColor="#F5F7FB" Padding="12">
+                                            <VerticalStackLayout Spacing="6">
+                                                <Label Text="{Binding DescripcionTexto}" TextColor="#1F2937"
+                                                       FontFamily="OpenSansSemibold" FontSize="14"
+                                                       LineBreakMode="WordWrap" />
+                                                <Label Text="{Binding CodigoTexto}" TextColor="#6B7280" FontSize="12" />
+                                                <HorizontalStackLayout Spacing="6">
+                                                    <Border Style="{StaticResource Chip}" BackgroundColor="{Binding TipoColor}">
+                                                        <Label Text="{Binding TipoTexto}" Style="{StaticResource TextoChip}" />
+                                                    </Border>
+                                                    <Border Style="{StaticResource Chip}" BackgroundColor="{Binding EstadoColor}">
+                                                        <Label Text="{Binding EstadoTexto}" Style="{StaticResource TextoChip}" />
+                                                    </Border>
+                                                </HorizontalStackLayout>
+                                                <Label Text="{Binding OtrosDatos}" IsVisible="{Binding TieneOtrosDatos}"
+                                                       TextColor="#4B5563" FontSize="12" />
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Datos adicionales que pueda enviar Hacienda -->
+                    <Border Style="{StaticResource Tarjeta}" IsVisible="{Binding TieneDatosAdicionales}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Información adicional" Style="{StaticResource TituloSeccion}" />
+                            <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding DatosAdicionales}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="m:DatoAdicional">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding Etiqueta}" Style="{StaticResource Etiqueta}" />
+                                            <Label Text="{Binding Valor}" Style="{StaticResource Valor}" LineBreakMode="WordWrap" />
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Fuente: Ministerio de Hacienda de Costa Rica (api.hacienda.go.cr)"
+                           TextColor="#9CA3AF" FontSize="11" HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

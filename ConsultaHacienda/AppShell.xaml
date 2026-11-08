@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ConsultaHacienda.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:ConsultaHacienda"
+    Title="Consulta Hacienda"
+    Shell.BackgroundColor="#0B3D91"
+    Shell.ForegroundColor="White"
+    Shell.TitleColor="White">
+
+    <ShellContent
+        Title="Consulta Hacienda"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+</Shell>
