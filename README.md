@@ -57,7 +57,10 @@ Generar el APK para instalar en un celular:
 dotnet publish ConsultaHacienda/ConsultaHacienda.csproj -f net10.0-android -c Release -p:AndroidPackageFormat=apk
 ```
 
-El APK queda en `ConsultaHacienda/bin/Release/net10.0-android/publish/`.
+El APK queda en `ConsultaHacienda/bin/Release/net10.0-android/publish/` (usar el `...-Signed.apk`).
+
+Si en el equipo no está instalada la carga de trabajo de iOS (por ejemplo en Windows), agregar
+`-p:TargetFrameworks=net10.0-android` a los comandos anteriores para compilar solo Android.
 
 iPhone (en una Mac):
 

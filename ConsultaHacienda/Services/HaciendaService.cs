@@ -11,7 +11,6 @@ public static class HaciendaService
 
 	private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
 
-	private static readonly JsonSerializerOptions Opciones = new() { PropertyNameCaseInsensitive = true };
 
 	public static async Task<Contribuyente> ConsultarAsync(string identificacion, CancellationToken ct = default)
 	{
@@ -35,7 +34,7 @@ public static class HaciendaService
 		Contribuyente? resultado;
 		try
 		{
-			resultado = JsonSerializer.Deserialize<Contribuyente>(contenido, Opciones);
+			resultado = JsonSerializer.Deserialize(contenido, HaciendaJsonContext.Default.Contribuyente);
 		}
 		catch (JsonException)
 		{
@@ -51,3 +50,8 @@ public static class HaciendaService
 }
 
 public class ConsultaException(string mensaje) : Exception(mensaje);
+
+/// <summary>Serialización generada en compilación: funciona aunque el modo Release recorte código.</summary>
+[System.Text.Json.Serialization.JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+[System.Text.Json.Serialization.JsonSerializable(typeof(Contribuyente))]
+internal partial class HaciendaJsonContext : System.Text.Json.Serialization.JsonSerializerContext;
