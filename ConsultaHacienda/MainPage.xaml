@@ -63,7 +63,7 @@
                 <Border Stroke="#C7D2E3" StrokeThickness="1" StrokeShape="RoundRectangle 10"
                         BackgroundColor="#F8FAFD" Padding="10,0">
                     <Entry x:Name="CedulaEntry"
-                           Placeholder="Ej: 112860047"
+                           Placeholder="Digite la identificación"
                            PlaceholderColor="#9CA3AF"
                            TextColor="#1F2937"
                            FontSize="18"
@@ -76,9 +76,6 @@
                            TextChanged="OnCedulaTextChanged"
                            Completed="OnConsultarClicked" />
                 </Border>
-
-                <Label Text="Solo letras y números, sin espacios ni caracteres especiales."
-                       Style="{StaticResource Etiqueta}" FontSize="11" />
 
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                     <Button x:Name="ConsultarButton" Grid.Column="0" Text="Consultar"

@@ -92,11 +92,8 @@ public partial class MainPage : ContentPage
 		CedulaEntry.Focus();
 	}
 
-	private async void OnSalirClicked(object? sender, EventArgs e)
+	private void OnSalirClicked(object? sender, EventArgs e)
 	{
-		var salir = await DisplayAlertAsync("Salir", "¿Desea cerrar Consulta Hacienda?", "Sí, salir", "Cancelar");
-		if (!salir) return;
-
 #if ANDROID
 		Platform.CurrentActivity?.FinishAffinity();
 		Application.Current?.Quit();
